@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마음 배달부 라디오</title>
+    <style>
+        /* 배달 업무 중 눈부심을 막기 위한 어두운 배경 (다크모드) */
+        body { 
+            background-color: #121212; 
+            color: #ffffff; 
+            font-family: 'Malgun Gothic', sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            margin: 0;
+        }
+        h2 { color: #f1c40f; }
+        
+        /* 장갑을 끼거나 흔들리는 차 안에서도 누르기 쉬운 대형 버튼 */
+        .btn-group { margin-top: 30px; }
+        button { 
+            font-size: 20px; 
+            font-weight: bold;
+            padding: 15px 25px; 
+            margin: 10px; 
+            border-radius: 12px; 
+            background-color: #333333; 
+            color: white; 
+            border: 2px solid #555; 
+            cursor: pointer;
+            width: 80%;
+            max-width: 300px;
+        }
+        button:active { background-color: #555555; }
+        
+        /* 유튜브 영상이 들어갈 자리 (오디오 위주이므로 작게 배치) */
+        #player { margin-top: 40px; border-radius: 10px; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+    <h2>📻 누에마의 문학 라디오</h2>
+    <p>현재 재생 카테고리 : 문학 & 에세이</p>
+
+    <div class="btn-group">
+        <button onclick="playVideo()">▶ 재생 시작</button>
+        <button onclick="pauseVideo()">⏸ 일시 정지</button>
+        <button onclick="nextVideo()">⏭ 다음 오디오</button>
+    </div>
+
+    <div id="player"></div>
+
+    <script>
+        // 1. 유튜브 API 불러오기
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        
+        // 2. ★여기에 듣고 싶은 유튜브 영상 ID를 넣습니다★
+        var videoIds = [
+            'qK_PZ2K_4uU', // 예시: 마음을 편안하게 해주는 시 낭독
+            '7QY0-N15-Bw', // 예시: 문학 오디오북
+            'xXwF_Z0P2qU'  // 예시: 잔잔한 에세이 낭독
+        ]; 
+        var currentVideoIndex = 0;
+
+        // 3. 플레이어 설정 및 실행
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '200',
+                width: '100%',
+                videoId: videoIds[currentVideoIndex],
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // 4. 영상이 끝나면 자동으로 다음 영상으로 넘어가는 논리
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                nextVideo();
+            }
+        }
+
+        // 버튼 작동 함수
+        function playVideo() { player.playVideo(); }
+        function pauseVideo() { player.pauseVideo(); }
+        function nextVideo() {
+            currentVideoIndex++;
+            if (currentVideoIndex >= videoIds.length) {
+                currentVideoIndex = 0; // 목록 끝까지 가면 처음으로 돌아감
+            }
+            player.loadVideoById(videoIds[currentVideoIndex]);
+        }
+    </script>
+</body>
+</html>
