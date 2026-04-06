@@ -1,101 +1,467 @@
+아래 전체 코드 복사해서 GitHub의 index.html에 붙여넣으세요:
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>마음 배달부 라디오</title>
-    <style>
-        /* 배달 업무 중 눈부심을 막기 위한 어두운 배경 (다크모드) */
-        body { 
-            background-color: #121212; 
-            color: #ffffff; 
-            font-family: 'Malgun Gothic', sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            margin: 0;
-        }
-        h2 { color: #f1c40f; }
-        
-        /* 장갑을 끼거나 흔들리는 차 안에서도 누르기 쉬운 대형 버튼 */
-        .btn-group { margin-top: 30px; }
-        button { 
-            font-size: 20px; 
-            font-weight: bold;
-            padding: 15px 25px; 
-            margin: 10px; 
-            border-radius: 12px; 
-            background-color: #333333; 
-            color: white; 
-            border: 2px solid #555; 
-            cursor: pointer;
-            width: 80%;
-            max-width: 300px;
-        }
-        button:active { background-color: #555555; }
-        
-        /* 유튜브 영상이 들어갈 자리 (오디오 위주이므로 작게 배치) */
-        #player { margin-top: 40px; border-radius: 10px; overflow: hidden; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>누에마의 문학 라디오</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #0e0e0e;
+      --surface:  #181818;
+      --card:     #202020;
+      --border:   #2e2e2e;
+      --amber:    #e8a030;
+      --amber-dim:#7a4f10;
+      --text:     #e8e0d4;
+      --text-dim: #7a7268;
+      --red:      #c0392b;
+      --green:    #27ae60;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Serif KR', serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 40px;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+    .wrap { position: relative; z-index: 1; width: 100%; max-width: 480px; padding: 0 20px; }
+    header {
+      text-align: center;
+      padding: 36px 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .signal-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      margin-right: 8px;
+      vertical-align: middle;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .signal-dot.off { background: var(--text-dim); animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,160,48,.6); }
+      50%       { opacity: .6; box-shadow: 0 0 0 8px rgba(232,160,48,0); }
+    }
+    header h1 { font-size: 22px; color: var(--amber); letter-spacing: .05em; }
+    header p  { font-size: 12px; color: var(--text-dim); margin-top: 4px; font-family: 'DM Mono', monospace; }
+    .tabs {
+      display: flex; gap: 8px;
+      overflow-x: auto;
+      padding: 0 0 4px;
+      scrollbar-width: none;
+      margin-bottom: 20px;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Noto Serif KR', serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tab.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(232,160,48,.08);
+    }
+    .art-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+    .art-bg {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .art-icon { font-size: 80px; opacity: 0.12; user-select: none; }
+    .art-gradient {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 40%, rgba(232,160,48,.15) 0%, transparent 70%);
+    }
+    #yt-player { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .visualizer {
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; align-items: flex-end; gap: 4px;
+      height: 40px;
+    }
+    .vbar {
+      width: 4px;
+      border-radius: 2px;
+      background: var(--amber);
+      opacity: 0.7;
+      animation: vbar-bounce var(--dur, 1s) ease-in-out infinite alternate;
+      transform-origin: bottom;
+    }
+    @keyframes vbar-bounce {
+      from { height: 4px; }
+      to   { height: var(--h, 30px); }
+    }
+    .visualizer.paused .vbar { animation-play-state: paused; }
+    .status-badge {
+      position: absolute;
+      top: 14px; right: 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(14,14,14,.8);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      backdrop-filter: blur(4px);
+    }
+    .status-badge.playing { color: var(--amber); border-color: var(--amber-dim); }
+    .status-badge.error   { color: var(--red);   border-color: var(--red); }
+    .track-counter {
+      position: absolute;
+      top: 14px; left: 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .track-info { text-align: center; margin-bottom: 20px; }
+    .track-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-meta { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+    .volume-row { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .volume-icon { font-size: 16px; color: var(--text-dim); flex-shrink: 0; }
+    input[type=range] {
+      -webkit-appearance: none;
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--amber);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(232,160,48,.5);
+    }
+    .volume-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); width: 30px; text-align: right; }
+    .controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 28px; }
+    .ctrl-btn {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      color: var(--text);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+    .ctrl-btn:active { transform: scale(.92); }
+    .ctrl-btn.sm  { width: 52px; height: 52px; font-size: 20px; }
+    .ctrl-btn.lg  { width: 72px; height: 72px; font-size: 30px; border-color: var(--amber); }
+    .ctrl-btn.lg:active { background: rgba(232,160,48,.15); }
+    .ctrl-btn.on  { color: var(--amber); border-color: var(--amber-dim); background: rgba(232,160,48,.08); }
+    .mode-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 32px; }
+    .mode-btn {
+      padding: 8px 20px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Noto Serif KR', serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .mode-btn.on { border-color: var(--amber-dim); color: var(--amber); background: rgba(232,160,48,.08); }
+    .playlist-head { font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; margin-bottom: 12px; letter-spacing: .08em; }
+    .playlist { display: flex; flex-direction: column; gap: 6px; }
+    .pl-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .pl-item:active { background: #282828; }
+    .pl-item.active { border-color: var(--amber-dim); background: rgba(232,160,48,.06); }
+    .pl-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-dim); width: 20px; text-align: center; flex-shrink: 0; }
+    .pl-item.active .pl-num { color: var(--amber); }
+    .pl-text { flex: 1; }
+    .pl-title { font-size: 14px; color: var(--text); }
+    .pl-item.active .pl-title { color: var(--amber); }
+    .pl-cat { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+    .pl-playing { font-size: 18px; animation: spin 2s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #2a1210;
+      border: 1px solid var(--red);
+      color: #e57373;
+      font-size: 13px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+      transition: transform .3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  </style>
 </head>
 <body>
 
-    <h2>📻 누에마의 문학 라디오</h2>
-    <p>현재 재생 카테고리 : 문학 & 에세이</p>
+<header>
+  <div>
+    <span class="signal-dot off" id="sigDot"></span>
+    <h1>📻 누에마의 문학 라디오</h1>
+  </div>
+  <p id="nowDate">— 마음을 싣고 달립니다 —</p>
+</header>
 
-    <div class="btn-group">
-        <button onclick="playVideo()">▶ 재생 시작</button>
-        <button onclick="pauseVideo()">⏸ 일시 정지</button>
-        <button onclick="nextVideo()">⏭ 다음 오디오</button>
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+
+  <div class="art-wrap">
+    <div class="art-bg">
+      <div class="art-icon" id="artIcon">📖</div>
     </div>
+    <div class="art-gradient"></div>
+    <div id="yt-player"></div>
+    <div class="status-badge" id="statusBadge">대기 중</div>
+    <div class="track-counter" id="trackCounter">—</div>
+    <div class="visualizer paused" id="visualizer"></div>
+  </div>
 
-    <div id="player"></div>
+  <div class="track-info">
+    <div class="track-title" id="trackTitle">트랙을 선택하세요</div>
+    <div class="track-meta" id="trackMeta">—</div>
+  </div>
 
-    <script>
-        // 1. 유튜브 API 불러오기
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  <div class="volume-row">
+    <span class="volume-icon">🔈</span>
+    <input type="range" id="volSlider" min="0" max="100" value="80" />
+    <span class="volume-icon">🔊</span>
+    <span class="volume-val" id="volVal">80</span>
+  </div>
 
-        var player;
-        
-        // 2. ★여기에 듣고 싶은 유튜브 영상 ID를 넣습니다★
-        var videoIds = [
-            'qK_PZ2K_4uU', // 예시: 마음을 편안하게 해주는 시 낭독
-            '7QY0-N15-Bw', // 예시: 문학 오디오북
-            'xXwF_Z0P2qU'  // 예시: 잔잔한 에세이 낭독
-        ]; 
-        var currentVideoIndex = 0;
+  <div class="controls">
+    <button class="ctrl-btn sm" id="btnPrev" onclick="prevTrack()">⏮</button>
+    <button class="ctrl-btn lg" id="btnPlay" onclick="togglePlay()">▶</button>
+    <button class="ctrl-btn sm" id="btnNext" onclick="nextTrack()">⏭</button>
+  </div>
 
-        // 3. 플레이어 설정 및 실행
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '200',
-                width: '100%',
-                videoId: videoIds[currentVideoIndex],
-                events: {
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
+  <div class="mode-row">
+    <button class="mode-btn" id="btnShuffle" onclick="toggleShuffle()">🔀 셔플</button>
+    <button class="mode-btn" id="btnRepeat"  onclick="toggleRepeat()">🔁 반복</button>
+  </div>
 
-        // 4. 영상이 끝나면 자동으로 다음 영상으로 넘어가는 논리
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                nextVideo();
-            }
-        }
+  <hr/>
+  <div class="playlist-head">PLAYLIST</div>
+  <div class="playlist" id="playlist"></div>
+</div>
 
-        // 버튼 작동 함수
-        function playVideo() { player.playVideo(); }
-        function pauseVideo() { player.pauseVideo(); }
-        function nextVideo() {
-            currentVideoIndex++;
-            if (currentVideoIndex >= videoIds.length) {
-                currentVideoIndex = 0; // 목록 끝까지 가면 처음으로 돌아감
-            }
-            player.loadVideoById(videoIds[currentVideoIndex]);
-        }
-    </script>
+<div class="toast" id="toast"></div>
+
+<script>
+// ★ 여기에 영상 추가/수정하세요 ★
+const CATEGORIES = {
+  '문학': {
+    icon: '📖',
+    tracks: [
+      { title: '윤동주 시 낭독 모음', meta: '하늘과 바람과 별과 시', videoId: 'Kxi5G2hwowk' },
+      { title: '김소월 진달래꽃 외', meta: '한국 근대시', videoId: '7QY0-N15-Bw' },
+      { title: '나태주 풀꽃 에세이', meta: '자연과 사람', videoId: 'xXwF_Z0P2qU' },
+    ]
+  },
+  '에세이': {
+    icon: '✍️',
+    tracks: [
+      { title: '법정 스님 무소유', meta: '청빈과 자유', videoId: 'REPLACE_ME_1' },
+      { title: '혜민 스님 멈추면 보이는 것들', meta: '마음 치유', videoId: 'REPLACE_ME_2' },
+    ]
+  },
+  '음악': {
+    icon: '🎵',
+    tracks: [
+      { title: '로파이 스터디 믹스', meta: 'lo-fi hip hop', videoId: 'REPLACE_ME_3' },
+      { title: '잔잔한 피아노 모음', meta: 'ambient piano', videoId: 'REPLACE_ME_4' },
+    ]
+  },
+};
+
+let player=null, playerReady=false, isPlaying=false, shuffle=false, repeat=false;
+let currentCat=Object.keys(CATEGORIES)[0], currentIdx=0, shuffleOrder=[];
+
+try {
+  const saved = JSON.parse(localStorage.getItem('nuema_radio')||'{}');
+  if (saved.cat && CATEGORIES[saved.cat]) currentCat=saved.cat;
+  if (typeof saved.idx==='number') currentIdx=saved.idx;
+  if (typeof saved.vol==='number') document.getElementById('volSlider').value=saved.vol;
+  if (saved.shuffle) shuffle=true;
+  if (saved.repeat)  repeat=true;
+} catch(e){}
+
+function saveState(){
+  try { localStorage.setItem('nuema_radio',JSON.stringify({cat:currentCat,idx:currentIdx,vol:+document.getElementById('volSlider').value,shuffle,repeat})); } catch(e){}
+}
+function tracks(){ return CATEGORIES[currentCat].tracks; }
+function track() { return tracks()[currentIdx]; }
+
+(function(){
+  const s=document.createElement('script');
+  s.src='https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+})();
+
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('yt-player',{
+    height:'1',width:'1',
+    videoId:track().videoId,
+    playerVars:{autoplay:0,controls:0,disablekb:1},
+    events:{onReady:onPlayerReady,onStateChange:onPlayerStateChange,onError:onPlayerError}
+  });
+}
+function onPlayerReady(e){ playerReady=true; applyVolume(); refreshUI(); }
+function onPlayerStateChange(e){
+  if(e.data===YT.PlayerState.PLAYING){
+    isPlaying=true; setVisualizer(true); setStatusBadge('재생 중','playing');
+    document.getElementById('sigDot').classList.remove('off');
+    document.getElementById('btnPlay').textContent='⏸';
+  } else if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.BUFFERING){
+    isPlaying=false; setVisualizer(false);
+    setStatusBadge(e.data===YT.PlayerState.BUFFERING?'로딩 중':'일시정지','');
+    document.getElementById('btnPlay').textContent='▶';
+  } else if(e.data===YT.PlayerState.ENDED){ handleEnded(); }
+}
+function onPlayerError(e){ showToast('⚠ 재생 오류 — 다음 트랙으로 넘어갑니다'); setStatusBadge('오류','error'); setTimeout(()=>nextTrack(),1500); }
+
+function guardPlayer(){ if(!player||!playerReady){showToast('플레이어 초기화 중입니다');return false;} return true; }
+function togglePlay(){ if(!guardPlayer())return; isPlaying?player.pauseVideo():player.playVideo(); }
+function loadTrack(idx,autoplay){
+  if(idx<0)idx=tracks().length-1;
+  if(idx>=tracks().length)idx=0;
+  currentIdx=idx; saveState(); refreshUI();
+  if(!guardPlayer())return;
+  autoplay!==false?player.loadVideoById(track().videoId):player.cueVideoById(track().videoId);
+}
+function nextTrack(){
+  if(shuffle){const next=shuffleOrder.shift();if(shuffleOrder.length===0)buildShuffle();loadTrack(next??0,true);}
+  else loadTrack(currentIdx+1,true);
+}
+function prevTrack(){
+  if(!guardPlayer())return;
+  try{if(player.getCurrentTime&&player.getCurrentTime()>3){player.seekTo(0);return;}}catch(e){}
+  loadTrack(currentIdx-1,true);
+}
+function handleEnded(){ if(repeat){player.seekTo(0);player.playVideo();return;} nextTrack(); }
+function buildShuffle(){ shuffleOrder=tracks().map((_,i)=>i).filter(i=>i!==currentIdx).sort(()=>Math.random()-.5); }
+function toggleShuffle(){ shuffle=!shuffle; if(shuffle)buildShuffle(); document.getElementById('btnShuffle').classList.toggle('on',shuffle); saveState(); }
+function toggleRepeat(){ repeat=!repeat; document.getElementById('btnRepeat').classList.toggle('on',repeat); saveState(); }
+
+function applyVolume(){
+  const v=+document.getElementById('volSlider').value;
+  document.getElementById('volVal').textContent=v;
+  if(player&&playerReady)player.setVolume(v);
+  saveState();
+}
+document.getElementById('volSlider').addEventListener('input',applyVolume);
+
+(function(){
+  const viz=document.getElementById('visualizer');
+  [18,30,22,36,26,40,28,34,20,32].forEach((h,i)=>{
+    const bar=document.createElement('div');
+    bar.className='vbar';
+    bar.style.setProperty('--h',h+'px');
+    bar.style.setProperty('--dur',(.7+i*.11)+'s');
+    bar.style.animationDelay=(i*.07)+'s';
+    viz.appendChild(bar);
+  });
+})();
+
+function setVisualizer(on){ document.getElementById('visualizer').classList.toggle('paused',!on); }
+
+function buildTabs(){
+  const c=document.getElementById('tabs'); c.innerHTML='';
+  Object.keys(CATEGORIES).forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='tab'+(cat===currentCat?' active':'');
+    btn.textContent=CATEGORIES[cat].icon+' '+cat;
+    btn.onclick=()=>{ currentCat=cat; currentIdx=0; buildTabs(); buildPlaylist(); loadTrack(0,false); };
+    c.appendChild(btn);
+  });
+}
+function buildPlaylist(){
+  const c=document.getElementById('playlist'); c.innerHTML='';
+  tracks().forEach((t,i)=>{
+    const item=document.createElement('div');
+    item.className='pl-item'+(i===currentIdx?' active':'');
+    item.innerHTML=`<span class="pl-num">${i===currentIdx&&isPlaying?'<span class="pl-playing">⟳</span>':(i+1)}</span><div class="pl-text"><div class="pl-title">${t.title}</div><div class="pl-cat">${t.meta}</div></div>`;
+    item.onclick=()=>loadTrack(i,true);
+    c.appendChild(item);
+  });
+}
+function setStatusBadge(text,cls){ const b=document.getElementById('statusBadge'); b.textContent=text; b.className='status-badge'+(cls?' '+cls:''); }
+function refreshUI(){
+  const t=track();
+  document.getElementById('trackTitle').textContent=t.title;
+  document.getElementById('trackMeta').textContent=t.meta;
+  document.getElementById('trackCounter').textContent=`${currentIdx+1} / ${tracks().length}`;
+  document.getElementById('artIcon').textContent=CATEGORIES[currentCat].icon;
+  document.getElementById('btnShuffle').classList.toggle('on',shuffle);
+  document.getElementById('btnRepeat').classList.toggle('on',repeat);
+  buildPlaylist();
+}
+let toastTimer;
+function showToast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
+
+(function(){
+  const d=new Date(), days=['일','월','화','수','목','금','토'];
+  document.getElementById('nowDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]}) · FM 누에마`;
+})();
+
+buildTabs(); buildPlaylist(); refreshUI();
+</script>
 </body>
 </html>
