@@ -1,275 +1,264 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>누에마의 문학 라디오</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:#0e0e0e; --surface:#181818; --card:#202020; --border:#2e2e2e;
-      --amber:#e8a030; --amber-dim:#7a4f10; --text:#e8e0d4; --text-dim:#7a7268;
-      --red:#c0392b; --green:#27ae60;
+import { useState, useCallback, useEffect } from "react";
+
+/**
+ * [디자인 시스템] 
+ * 미니멀리즘과 데이터 중심의 스위스 스타일 레이아웃
+ */
+const CATS = [
+  { key: "all",    label: "ALL",      emoji: "◎",  color: "#ffffff" },
+  { key: "work",   label: "WORK",     emoji: "⚡",  color: "#fbbf24" },
+  { key: "create", label: "CREATE",   emoji: "✦",  color: "#f472b6" },
+  { key: "daily",  label: "DAILY",    emoji: "☀",   color: "#34d399" },
+  { key: "dev",    label: "DEV",      emoji: "⟨⟩", color: "#60a5fa" },
+  { key: "learn",  label: "LEARN",    emoji: "◈",  color: "#a78bfa" },
+];
+
+const SYSTEM_PROMPT = `당신은 전문 AI 큐레이터입니다. 구글 검색을 통해 국내외(Reddit, X/Twitter, 클리앙, 디시, 뽐뿌 등) 커뮤니티에서 실제로 화제가 된 AI 활용 꿀팁 12개를 찾으세요. 
+반드시 아래 JSON 형식으로만 답변하고, 마크다운 백틱(\`\`\`json)은 절대로 포함하지 마세요. 오직 순수 JSON 객체만 출력하세요.
+
+카테고리 분류: work, create, daily, dev, learn
+{
+  "items": [
+    {
+      "id": "1",
+      "title": "제목(25자 이내, 핵심만)",
+      "teaser": "한 줄 요약(데이터 기반)",
+      "tip": "실행 가능한 구체적 방법 2-3문장",
+      "tool": "AI 도구명",
+      "cat": "work",
+      "src": "출처 커뮤니티명",
+      "url": "해당 사례의 실제 원문 URL",
+      "hot": 85
     }
-    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    body { background:var(--bg); color:var(--text); font-family:'Noto Serif KR',serif; min-height:100dvh; display:flex; flex-direction:column; align-items:center; padding:0 0 40px; overflow-x:hidden; }
-    body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:0; }
-    .wrap { position:relative; z-index:1; width:100%; max-width:480px; padding:0 20px; }
-    header { text-align:center; padding:36px 20px 24px; position:relative; z-index:1; }
-    .signal-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--amber); margin-right:8px; vertical-align:middle; animation:pulse 2s ease-in-out infinite; }
-    .signal-dot.off { background:var(--text-dim); animation:none; }
-    @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(232,160,48,.6)} 50%{opacity:.6;box-shadow:0 0 0 8px rgba(232,160,48,0)} }
-    header h1 { font-size:22px; color:var(--amber); letter-spacing:.05em; }
-    header p  { font-size:12px; color:var(--text-dim); margin-top:4px; font-family:'DM Mono',monospace; }
-    .tabs { display:flex; gap:8px; overflow-x:auto; padding:0 0 4px; scrollbar-width:none; margin-bottom:20px; }
-    .tabs::-webkit-scrollbar { display:none; }
-    .tab { flex-shrink:0; padding:8px 18px; border-radius:20px; border:1.5px solid var(--border); background:transparent; color:var(--text-dim); font-family:'Noto Serif KR',serif; font-size:13px; cursor:pointer; transition:all .2s; }
-    .tab.active { border-color:var(--amber); color:var(--amber); background:rgba(232,160,48,.08); }
-    .art-wrap { position:relative; width:100%; aspect-ratio:1; border-radius:16px; overflow:hidden; margin-bottom:24px; background:var(--card); border:1px solid var(--border); }
-    .art-bg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
-    .art-icon { font-size:80px; opacity:0.12; user-select:none; }
-    .art-gradient { position:absolute; inset:0; background:radial-gradient(ellipse at 30% 40%,rgba(232,160,48,.15) 0%,transparent 70%); }
-    #yt-player { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
-    .visualizer { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); display:flex; align-items:flex-end; gap:4px; height:40px; }
-    .vbar { width:4px; border-radius:2px; background:var(--amber); opacity:0.7; animation:vbar-bounce var(--dur,1s) ease-in-out infinite alternate; transform-origin:bottom; }
-    @keyframes vbar-bounce { from{height:4px} to{height:var(--h,30px)} }
-    .visualizer.paused .vbar { animation-play-state:paused; }
-    .status-badge { position:absolute; top:14px; right:14px; font-family:'DM Mono',monospace; font-size:11px; padding:4px 10px; border-radius:20px; background:rgba(14,14,14,.8); border:1px solid var(--border); color:var(--text-dim); backdrop-filter:blur(4px); }
-    .status-badge.playing { color:var(--amber); border-color:var(--amber-dim); }
-    .status-badge.error   { color:var(--red);   border-color:var(--red); }
-    .track-counter { position:absolute; top:14px; left:14px; font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); }
-    .track-info { text-align:center; margin-bottom:20px; }
-    .track-title { font-size:18px; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .track-meta  { font-size:12px; color:var(--text-dim); font-family:'DM Mono',monospace; }
-    .volume-row  { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
-    .volume-icon { font-size:16px; color:var(--text-dim); flex-shrink:0; }
-    input[type=range] { -webkit-appearance:none; flex:1; height:4px; border-radius:2px; background:var(--border); outline:none; cursor:pointer; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--amber); cursor:pointer; box-shadow:0 0 6px rgba(232,160,48,.5); }
-    .volume-val  { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); width:30px; text-align:right; }
-    .controls    { display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:28px; }
-    .ctrl-btn    { background:var(--card); border:1.5px solid var(--border); border-radius:50%; color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; }
-    .ctrl-btn:active { transform:scale(.92); }
-    .ctrl-btn.sm { width:52px; height:52px; font-size:20px; }
-    .ctrl-btn.lg { width:72px; height:72px; font-size:30px; border-color:var(--amber); }
-    .ctrl-btn.lg:active { background:rgba(232,160,48,.15); }
-    .ctrl-btn.on { color:var(--amber); border-color:var(--amber-dim); background:rgba(232,160,48,.08); }
-    .mode-row    { display:flex; justify-content:center; gap:12px; margin-bottom:32px; }
-    .mode-btn    { padding:8px 20px; border-radius:20px; border:1.5px solid var(--border); background:transparent; color:var(--text-dim); font-family:'Noto Serif KR',serif; font-size:13px; cursor:pointer; transition:all .2s; }
-    .mode-btn.on { border-color:var(--amber-dim); color:var(--amber); background:rgba(232,160,48,.08); }
-    .playlist-head { font-size:13px; color:var(--text-dim); font-family:'DM Mono',monospace; margin-bottom:12px; letter-spacing:.08em; }
-    .playlist    { display:flex; flex-direction:column; gap:6px; }
-    .pl-item     { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:10px; background:var(--card); border:1px solid var(--border); cursor:pointer; transition:all .15s; }
-    .pl-item:active { background:#282828; }
-    .pl-item.active { border-color:var(--amber-dim); background:rgba(232,160,48,.06); }
-    .pl-num      { font-family:'DM Mono',monospace; font-size:12px; color:var(--text-dim); width:20px; text-align:center; flex-shrink:0; }
-    .pl-item.active .pl-num   { color:var(--amber); }
-    .pl-text     { flex:1; }
-    .pl-title    { font-size:14px; color:var(--text); }
-    .pl-item.active .pl-title { color:var(--amber); }
-    .pl-cat      { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); margin-top:2px; }
-    .pl-playing  { font-size:18px; animation:spin 2s linear infinite; }
-    @keyframes spin { to{transform:rotate(360deg)} }
-    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px); background:#2a1210; border:1px solid var(--red); color:#e57373; font-size:13px; padding:12px 20px; border-radius:10px; font-family:'DM Mono',monospace; transition:transform .3s; z-index:999; white-space:nowrap; }
-    .toast.show { transform:translateX(-50%) translateY(0); }
-    hr { border:none; border-top:1px solid var(--border); margin:28px 0; }
-  </style>
-</head>
-<body>
-
-<header>
-  <div>
-    <span class="signal-dot off" id="sigDot"></span>
-    <h1>📻 누에마의 문학 라디오</h1>
-  </div>
-  <p id="nowDate">— 마음을 싣고 달립니다 —</p>
-</header>
-
-<div class="wrap">
-  <div class="tabs" id="tabs"></div>
-  <div class="art-wrap">
-    <div class="art-bg"><div class="art-icon" id="artIcon">🎧</div></div>
-    <div class="art-gradient"></div>
-    <div id="yt-player"></div>
-    <div class="status-badge" id="statusBadge">대기 중</div>
-    <div class="track-counter" id="trackCounter">—</div>
-    <div class="visualizer paused" id="visualizer"></div>
-  </div>
-  <div class="track-info">
-    <div class="track-title" id="trackTitle">트랙을 선택하세요</div>
-    <div class="track-meta"  id="trackMeta">—</div>
-  </div>
-  <div class="volume-row">
-    <span class="volume-icon">🔈</span>
-    <input type="range" id="volSlider" min="0" max="100" value="80" />
-    <span class="volume-icon">🔊</span>
-    <span class="volume-val" id="volVal">80</span>
-  </div>
-  <div class="controls">
-    <button class="ctrl-btn sm" onclick="prevTrack()">⏮</button>
-    <button class="ctrl-btn lg" id="btnPlay" onclick="togglePlay()">▶</button>
-    <button class="ctrl-btn sm" onclick="nextTrack()">⏭</button>
-  </div>
-  <div class="mode-row">
-    <button class="mode-btn" id="btnShuffle" onclick="toggleShuffle()">🔀 셔플</button>
-    <button class="mode-btn" id="btnRepeat"  onclick="toggleRepeat()">🔁 반복</button>
-  </div>
-  <hr/>
-  <div class="playlist-head">PLAYLIST</div>
-  <div class="playlist" id="playlist"></div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// ★ 트랙 추가/수정은 여기서만 ★
-const CATEGORIES = {
-  '로파이': {
-    icon: '🎧',
-    tracks: [
-      { title: 'Lofi Hip Hop Radio',  meta: 'Lofi Girl · beats to relax/study', videoId: '5qap5aO4i9A' },
-      { title: 'Chillhop Radio',      meta: 'Chillhop Music · jazzy beats',     videoId: '7NOSDKb0HlU' },
-      { title: 'Lofi Chill Beats',    meta: 'College Music · focus mode',       videoId: 'b4nRb-7bBbM' },
-    ]
-  },
-  '피아노': {
-    icon: '🎹',
-    tracks: [
-      { title: 'Relaxing Piano Music', meta: 'Soothing Relaxation · 3hrs',  videoId: '1ZYbU82uUpo' },
-      { title: 'Sleep Piano Music',    meta: 'Yellow Brick Cinema · calm',   videoId: 'UfcAVejslrU' },
-      { title: 'Study Piano Playlist', meta: 'Quiet Quest · deep focus',     videoId: 'lTRiuFIWV54' },
-    ]
-  },
-  '자연': {
-    icon: '🌿',
-    tracks: [
-      { title: 'Rain & Coffee Shop',  meta: 'ambience · white noise',  videoId: 'q76bMs-NwRk' },
-      { title: 'Forest Rain ASMR',   meta: 'nature sounds · 8hrs',    videoId: 'xNN7iTA57jM' },
-      { title: 'Ocean Waves',         meta: 'relaxing sea sounds',     videoId: 'bn9F19Hi1Lk' },
-    ]
-  },
-};
-
-let player=null,playerReady=false,isPlaying=false,shuffle=false,repeat=false;
-let currentCat=Object.keys(CATEGORIES)[0],currentIdx=0,shuffleOrder=[];
-
-try {
-  const s=JSON.parse(localStorage.getItem('nuema_radio')||'{}');
-  if(s.cat&&CATEGORIES[s.cat])currentCat=s.cat;
-  if(typeof s.idx==='number')currentIdx=s.idx;
-  if(typeof s.vol==='number')document.getElementById('volSlider').value=s.vol;
-  if(s.shuffle)shuffle=true;
-  if(s.repeat)repeat=true;
-}catch(e){}
-
-function saveState(){try{localStorage.setItem('nuema_radio',JSON.stringify({cat:currentCat,idx:currentIdx,vol:+document.getElementById('volSlider').value,shuffle,repeat}));}catch(e){}}
-function tracks(){return CATEGORIES[currentCat].tracks;}
-function track(){return tracks()[currentIdx];}
-
-(function(){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);})();
-
-function onYouTubeIframeAPIReady(){
-  player=new YT.Player('yt-player',{
-    height:'1',width:'1',videoId:track().videoId,
-    playerVars:{autoplay:0,controls:0,disablekb:1},
-    events:{onReady:onPlayerReady,onStateChange:onPlayerStateChange,onError:onPlayerError}
-  });
+  ]
 }
-function onPlayerReady(){playerReady=true;applyVolume();refreshUI();}
-function onPlayerStateChange(e){
-  if(e.data===YT.PlayerState.PLAYING){
-    isPlaying=true;setVisualizer(true);setStatusBadge('재생 중','playing');
-    document.getElementById('sigDot').classList.remove('off');
-    document.getElementById('btnPlay').textContent='⏸';
-  }else if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.BUFFERING){
-    isPlaying=false;setVisualizer(false);
-    setStatusBadge(e.data===YT.PlayerState.BUFFERING?'로딩 중':'일시정지','');
-    document.getElementById('btnPlay').textContent='▶';
-  }else if(e.data===YT.PlayerState.ENDED){handleEnded();}
-}
-function onPlayerError(){showToast('⚠ 재생 오류 — 다음 트랙으로 넘어갑니다');setStatusBadge('오류','error');setTimeout(()=>nextTrack(),1500);}
 
-function guardPlayer(){if(!player||!playerReady){showToast('플레이어 초기화 중입니다');return false;}return true;}
-function togglePlay(){if(!guardPlayer())return;isPlaying?player.pauseVideo():player.playVideo();}
-function loadTrack(idx,autoplay){
-  if(idx<0)idx=tracks().length-1;
-  if(idx>=tracks().length)idx=0;
-  currentIdx=idx;saveState();refreshUI();
-  if(!guardPlayer())return;
-  autoplay!==false?player.loadVideoById(track().videoId):player.cueVideoById(track().videoId);
-}
-function nextTrack(){
-  if(shuffle){const n=shuffleOrder.shift();if(shuffleOrder.length===0)buildShuffle();loadTrack(n??0,true);}
-  else loadTrack(currentIdx+1,true);
-}
-function prevTrack(){
-  if(!guardPlayer())return;
-  try{if(player.getCurrentTime&&player.getCurrentTime()>3){player.seekTo(0);return;}}catch(e){}
-  loadTrack(currentIdx-1,true);
-}
-function handleEnded(){if(repeat){player.seekTo(0);player.playVideo();return;}nextTrack();}
-function buildShuffle(){shuffleOrder=tracks().map((_,i)=>i).filter(i=>i!==currentIdx).sort(()=>Math.random()-.5);}
-function toggleShuffle(){shuffle=!shuffle;if(shuffle)buildShuffle();document.getElementById('btnShuffle').classList.toggle('on',shuffle);saveState();}
-function toggleRepeat(){repeat=!repeat;document.getElementById('btnRepeat').classList.toggle('on',repeat);saveState();}
+조건: 실제로 사람들이 써보고 유용하다고 검증한 구체적인 사례 위주로 선정할 것.`;
 
-function applyVolume(){
-  const v=+document.getElementById('volSlider').value;
-  document.getElementById('volVal').textContent=v;
-  if(player&&playerReady)player.setVolume(v);
-  saveState();
+const USER_PROMPT = `최근 7일간 IT 및 AI 관련 커뮤니티에서 가장 화제가 된 실전 AI 활용 꿀팁 12개를 검색해서 JSON으로 알려줘.`;
+
+function Badge({ cat }) {
+  const c = CATS.find(v => v.key === cat) || CATS[0];
+  return (
+    <span style={{
+      fontSize: "9px", fontFamily: "'DM Mono', monospace",
+      color: c.color, background: `${c.color}15`,
+      border: `1px solid ${c.color}30`,
+      padding: "2px 8px", borderRadius: "2px",
+      letterSpacing: "1px", textTransform: "uppercase"
+    }}>{c.label}</span>
+  );
 }
-document.getElementById('volSlider').addEventListener('input',applyVolume);
 
-(function(){
-  const viz=document.getElementById('visualizer');
-  [18,30,22,36,26,40,28,34,20,32].forEach((h,i)=>{
-    const b=document.createElement('div');b.className='vbar';
-    b.style.setProperty('--h',h+'px');b.style.setProperty('--dur',(.7+i*.11)+'s');
-    b.style.animationDelay=(i*.07)+'s';viz.appendChild(b);
-  });
-})();
+function TipCard({ item, i }) {
+  const [hover, setHover] = useState(false);
+  const c = CATS.find(v => v.key === item.cat) || CATS[0];
 
-function setVisualizer(on){document.getElementById('visualizer').classList.toggle('paused',!on);}
+  return (
+    <div 
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: "#111115",
+        border: `1px solid ${hover ? "#333" : "#1a1a20"}`,
+        padding: "24px",
+        borderRadius: "0px",
+        transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        animation: `up 0.6s ease ${i * 0.05}s both`,
+        position: "relative",
+        display: "flex", flexDirection: "column", gap: "16px"
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{
+          fontFamily: "'DM Mono', monospace", fontSize: "24px", 
+          fontWeight: "500", color: item.hot >= 80 ? "#ff4d00" : "#fff"
+        }}>
+          {item.hot}<span style={{ fontSize: "10px", color: "#444", marginLeft: "4px" }}>HOT</span>
+        </div>
+        <Badge cat={item.cat} />
+      </div>
 
-function buildTabs(){
-  const c=document.getElementById('tabs');c.innerHTML='';
-  Object.keys(CATEGORIES).forEach(cat=>{
-    const b=document.createElement('button');
-    b.className='tab'+(cat===currentCat?' active':'');
-    b.textContent=CATEGORIES[cat].icon+' '+cat;
-    b.onclick=()=>{currentCat=cat;currentIdx=0;buildTabs();buildPlaylist();loadTrack(0,false);};
-    c.appendChild(b);
-  });
+      <div>
+        <h3 style={{
+          fontSize: "16px", fontWeight: "700", color: "#eee",
+          lineHeight: "1.4", marginBottom: "8px", fontFamily: "'Noto Sans KR', sans-serif"
+        }}>{item.title}</h3>
+        <p style={{ fontSize: "13px", color: "#777", lineHeight: "1.6" }}>{item.teaser}</p>
+      </div>
+
+      <div style={{
+        padding: "16px", background: "#00000040", borderLeft: `3px solid ${c.color}`,
+        fontSize: "13px", color: "#aaa", lineHeight: "1.7"
+      }}>
+        {item.tip}
+      </div>
+
+      <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "10px" }}>
+        <span style={{ fontSize: "10px", color: "#444", fontFamily: "'DM Mono', monospace" }}>
+          VIA {item.src} · {item.tool}
+        </span>
+        <a href={item.url} target="_blank" rel="noreferrer" style={{
+          color: "#fff", textDecoration: "none", fontSize: "11px",
+          borderBottom: "1px solid #444", paddingBottom: "2px"
+        }}>VIEW SOURCE ↗</a>
+      </div>
+    </div>
+  );
 }
-function buildPlaylist(){
-  const c=document.getElementById('playlist');c.innerHTML='';
-  tracks().forEach((t,i)=>{
-    const item=document.createElement('div');
-    item.className='pl-item'+(i===currentIdx?' active':'');
-    item.innerHTML=`<span class="pl-num">${i===currentIdx&&isPlaying?'<span class="pl-playing">⟳</span>':(i+1)}</span><div class="pl-text"><div class="pl-title">${t.title}</div><div class="pl-cat">${t.meta}</div></div>`;
-    item.onclick=()=>loadTrack(i,true);
-    c.appendChild(item);
-  });
-}
-function setStatusBadge(text,cls){const b=document.getElementById('statusBadge');b.textContent=text;b.className='status-badge'+(cls?' '+cls:'');}
-function refreshUI(){
-  const t=track();
-  document.getElementById('trackTitle').textContent=t.title;
-  document.getElementById('trackMeta').textContent=t.meta;
-  document.getElementById('trackCounter').textContent=`${currentIdx+1} / ${tracks().length}`;
-  document.getElementById('artIcon').textContent=CATEGORIES[currentCat].icon;
-  document.getElementById('btnShuffle').classList.toggle('on',shuffle);
-  document.getElementById('btnRepeat').classList.toggle('on',repeat);
-  buildPlaylist();
-}
-let toastTimer;
-function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000);}
 
-(function(){
-  const d=new Date(),days=['일','월','화','수','목','금','토'];
-  document.getElementById('nowDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]}) · FM 누에마`;
-})();
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("all");
 
-buildTabs();buildPlaylist();refreshUI();
-</script>
-</body>
-</html>
+  const fetchGemini = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      // 전달해주신 API 키를 직접 적용했습니다.
+      const API_KEY = "AIzaSyCbEGjzm-0fauPMYV6XnDBpdY2sq90EHIQ"; 
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${USER_PROMPT}` }] }],
+          tools: [{ googleSearchRetrieval: {} }] // 구글 검색 도구 활성화
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Gemini API Error: ${res.status}`);
+      const data = await res.json();
+      
+      if (!data.candidates || !data.candidates[0].content.parts[0].text) {
+        throw new Error("응답 데이터 형식이 올바르지 않습니다.");
+      }
+
+      const textResponse = data.candidates[0].content.parts[0].text;
+      
+      // JSON 파싱 (마크다운 백틱 제거 및 클리닝)
+      const cleanJson = textResponse.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleanJson);
+      
+      setItems(parsed.items || []);
+    } catch (e) {
+      console.error(e);
+      setError("데이터를 논리적으로 분석하는 도중 오류가 발생했습니다. API 호출 제한이나 형식을 확인하십시오.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const filteredItems = filter === "all" ? items : items.filter(it => it.cat === filter);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "0 20px" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700&family=DM+Mono:wght@400;500&display=swap');
+        @keyframes up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Noto Sans KR', sans-serif; background: #050505; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1a1a20; }
+      `}</style>
+
+      {/* 정교한 헤더 섹션 */}
+      <header style={{ 
+        maxWidth: "1200px", margin: "0 auto", padding: "80px 0 40px",
+        borderBottom: "1px solid #1a1a1a", marginBottom: "40px"
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+          <div>
+            <div style={{ fontSize: "11px", color: "#fbbf24", letterSpacing: "4px", marginBottom: "12px", fontWeight: "500" }}>CURATED INTELLIGENCE</div>
+            <h1 style={{ fontSize: "48px", fontWeight: "700", margin: 0, letterSpacing: "-2px" }}>AI INSIGHTS</h1>
+          </div>
+          <button 
+            onClick={fetchGemini}
+            disabled={loading}
+            style={{
+              background: loading ? "#111" : "none", 
+              border: `1px solid ${loading ? "#222" : "#333"}`, 
+              color: loading ? "#444" : "#fff",
+              padding: "14px 28px", cursor: loading ? "not-allowed" : "pointer", 
+              fontFamily: "'DM Mono', monospace",
+              fontSize: "12px", transition: "all 0.3s",
+              letterSpacing: "1px"
+            }}
+          >
+            {loading ? "ANALYZING NODES..." : "FETCH DATA ↻"}
+          </button>
+        </div>
+
+        {/* 필터 탭 */}
+        <nav style={{ display: "flex", gap: "24px", marginTop: "40px" }}>
+          {CATS.map(c => (
+            <button
+              key={c.key}
+              onClick={() => setFilter(c.key)}
+              style={{
+                background: "none", border: "none", color: filter === c.key ? c.color : "#444",
+                cursor: "pointer", fontSize: "12px", fontWeight: "700", 
+                fontFamily: "'DM Mono', monospace", padding: "0 0 10px 0",
+                borderBottom: filter === c.key ? `2px solid ${c.color}` : "2px solid transparent",
+                transition: "all 0.2s",
+                letterSpacing: "1px"
+              }}
+            >
+              {c.label}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      {/* 메인 콘텐츠 그리드 */}
+      <main style={{ maxWidth: "1200px", margin: "0 auto", paddingBottom: "100px" }}>
+        {error && (
+          <div style={{ 
+            color: "#ff4d00", border: "1px solid #ff4d0020", 
+            background: "#ff4d0005", padding: "24px", marginBottom: "30px",
+            fontSize: "13px", fontFamily: "'DM Mono', monospace" 
+          }}>
+            ERROR_LOG: {error}
+          </div>
+        )}
+        
+        {loading ? (
+          <div style={{ 
+            fontSize: "13px", fontFamily: "'DM Mono', monospace", color: "#444", 
+            textAlign: "center", padding: "120px", letterSpacing: "2px" 
+          }}>
+            INTERROGATING GLOBAL COMMUNITY DATA...
+          </div>
+        ) : (
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", 
+            gap: "1px", 
+            background: "#1a1a20",
+            border: "1px solid #1a1a20"
+          }}>
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item, i) => <TipCard key={item.id} item={item} i={i} />)
+            ) : !error && (
+              <div style={{ gridColumn: "1/-1", background: "#050505", textAlign: "center", padding: "120px", color: "#222" }}>
+                <div style={{ fontSize: "48px", marginBottom: "20px" }}>◎</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12px", letterSpacing: "2px" }}>
+                  SYSTEM_IDLE: PRESS FETCH TO POPULATE DATA
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      <footer style={{ 
+        maxWidth: "1200px", margin: "0 auto", padding: "60px 0", 
+        borderTop: "1px solid #1a1a1a", display: "flex", justifyContent: "space-between",
+        fontSize: "10px", color: "#333", fontFamily: "'DM Mono', monospace", letterSpacing: "1px"
+      }}>
+        <div>© 2026 NOUÉMA ARCHIVE</div>
+        <div>POWERED BY GEMINI 1.5 · GOOGLE SEARCH GROUNDING</div>
+      </footer>
+    </div>
+  );
+}
