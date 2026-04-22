@@ -129,20 +129,18 @@
         try {
           const API_KEY = "AIzaSyCbEGjzm-0fauPMYV6XnDBpdY2sq90EHIQ"; 
           
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+          // 젬(Gemini) 최신 모델인 2.5-flash로 업데이트 완료!
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${USER_PROMPT}` }] }],
-              // 최신 Google API 규격으로 변경 (googleSearchRetrieval -> googleSearch)
               tools: [{ googleSearch: {} }] 
             }),
           });
 
-          // API 응답 데이터를 먼저 읽어옵니다. (에러 원인 파악을 위해)
           const data = await res.json();
           
-          // HTTP 상태가 정상이 아닐 경우, 구글 서버가 보내준 진짜 에러 메시지를 출력합니다.
           if (!res.ok) {
             throw new Error(`[API 거절] ${data.error?.message || res.status}`);
           }
@@ -153,7 +151,6 @@
 
           const textResponse = data.candidates[0].content.parts[0].text;
           
-          // [강력한 JSON 추출기] 모델이 헛소리를 덧붙여도 중괄호 {...} 안의 데이터만 강제로 뽑아냅니다.
           const match = textResponse.match(/\{[\s\S]*\}/);
           if (!match) throw new Error(`[데이터 오류] JSON 형식을 찾을 수 없습니다. 원본응답: ${textResponse.substring(0, 50)}...`);
           
@@ -162,7 +159,6 @@
           setItems(parsed.items || []);
         } catch (e) {
           console.error(e);
-          // 화면에 정확한 에러 원인을 노출합니다.
           setError(e.message || "데이터를 논리적으로 분석하는 도중 알 수 없는 오류가 발생했습니다.");
         } finally {
           setLoading(false);
@@ -274,7 +270,7 @@
             fontSize: "10px", color: "#333", fontFamily: "'DM Mono', monospace", letterSpacing: "1px"
           }}>
             <div>© 2026 NOUÉMA ARCHIVE</div>
-            <div>POWERED BY GEMINI 1.5 · GOOGLE SEARCH GROUNDING</div>
+            <div>POWERED BY GEMINI 2.5 · GOOGLE SEARCH GROUNDING</div>
           </footer>
         </div>
       );
