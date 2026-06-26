@@ -143,43 +143,55 @@
   /* ---- mobile touch controls (hidden on desktop) ---- */
   .touch{display:none}
   @media (max-width:760px){
-    body{align-items:flex-start;padding:10px 8px 0}
-    /* leave room at the bottom for the fixed touch pad */
-    .frame{grid-template-columns:1fr;gap:10px;padding:16px 14px 14px;width:100%;max-width:440px;margin-bottom:188px}
-    header{margin-bottom:8px}
-    h1{font-size:24px}
-    h1 .kanji{font-size:12px;margin-top:4px}
-    .subtitle{font-size:12px}
-    aside{flex-direction:row;flex-wrap:wrap;gap:8px;order:-1}
-    .plate{flex:1;min-width:0;padding:7px 9px}
-    .plate .value{font-size:20px}
-    .stat-row{flex:2}
-    .stat-row .value{font-size:18px}
-    .next-plate{flex-basis:auto;min-width:84px}
-    #next{width:64px;height:64px}
-    .toolbar{flex-basis:100%;margin-top:0}
+    body{align-items:flex-start;padding:8px 8px 0}
+    /* leave room at the bottom for the fixed touch pad (2 rows) */
+    .frame{grid-template-columns:1fr;gap:8px;padding:12px 12px 10px;width:100%;max-width:440px;margin-bottom:232px}
+    header{margin-bottom:4px;max-width:none}
+    .eyebrow{font-size:8px;margin-bottom:4px}
+    h1{font-size:20px}
+    h1 .kanji{font-size:11px;margin-top:3px}
+    .rule{margin-top:6px}
+    .subtitle{display:none}
+    aside{flex-direction:row;flex-wrap:wrap;gap:7px;order:-1}
+    .plate{flex:1;min-width:0;padding:6px 8px}
+    .plate .label{font-size:8px;margin-bottom:3px}
+    .plate .value{font-size:18px}
+    .stat-row{flex:2;gap:7px}
+    .stat-row .value{font-size:16px}
+    .next-plate{flex-basis:auto;min-width:76px}
+    #next{width:52px;height:52px}
+    .toolbar{flex-basis:100%;margin-top:0;gap:7px}
+    .icon-btn{padding:7px 4px}
     .keys,.colophon{display:none}
-    #board{width:100%;height:auto;max-width:300px;margin:0 auto}
-    .board-wrap{margin:0 auto}
+    .filigree{width:30px;height:30px}
+    /* board sized to remaining viewport height; canvas is 1:2 so width follows */
+    .board-wrap{margin:0 auto;padding:6px}
+    #board{
+      height:auto;
+      width:min(100%, calc((100vh - 380px) / 2));
+      width:min(100%, calc((100dvh - 380px) / 2));
+      max-width:300px;
+      margin:0 auto;
+    }
 
     /* touch pad pinned to the bottom of the screen */
     .touch{
       display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
       position:fixed;left:0;right:0;bottom:0;z-index:20;
       padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-      background:linear-gradient(0deg, rgba(8,10,18,.98) 70%, rgba(8,10,18,0));
+      background:linear-gradient(0deg, rgba(8,10,18,.98) 72%, rgba(8,10,18,0));
       border-top:1px solid rgba(201,168,74,.35);
     }
     .touch button{
-      font-family:'Marcellus',serif;font-size:24px;color:var(--gold-bright);
+      font-family:'Marcellus',serif;font-size:22px;color:var(--gold-bright);
       background:linear-gradient(160deg,rgba(22,26,40,.95),rgba(12,14,22,.98));
       border:1px solid rgba(201,168,74,.45);border-radius:6px;
-      padding:16px 0;cursor:pointer;user-select:none;touch-action:manipulation;
+      padding:12px 0;cursor:pointer;user-select:none;touch-action:manipulation;
       box-shadow:inset 0 0 0 1px rgba(201,168,74,.12),0 4px 10px var(--shadow);
     }
     .touch button:active{background:rgba(201,168,74,.22);transform:translateY(1px)}
     .touch button.wide{grid-column:span 2}
-    .touch .lbl{display:block;font-family:'Cinzel',serif;font-size:7.5px;letter-spacing:.16em;color:var(--bone);margin-top:3px}
+    .touch .lbl{display:block;font-family:'Cinzel',serif;font-size:7.5px;letter-spacing:.16em;color:var(--bone);margin-top:2px}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
