@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AMANO TETROMINO · 夢の塔</title>
-<link rel="apple-touch-icon" id="touch-icon" href="">
-<link rel="apple-touch-icon" id="touch-icon" href="icon222.png">
-<link rel="icon" id="fav-icon" type="image/png" href="icon222.png">
-<link rel="manifest" id="pwa-manifest" href="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Marcellus&display=swap" rel="stylesheet">
 <style>
   :root{
     --void:#0c0e16;
@@ -130,6 +129,14 @@
   }
   .comboFx.go{animation:combofx 1.4s ease forwards}
   @keyframes combofx{0%{opacity:0;transform:scale(.9)}20%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+  /* relic activation whisper */
+  .itemFx{
+    position:absolute;left:0;right:0;top:24%;z-index:4;pointer-events:none;text-align:center;opacity:0;
+    font-style:italic;font-size:14px;color:var(--mist);
+    text-shadow:0 0 14px rgba(230,205,126,.8),0 2px 6px rgba(0,0,0,.9);
+  }
+  .itemFx .ik{font-family:'Marcellus',serif;font-style:normal;font-size:24px;color:var(--gold-bright);display:block;margin-bottom:2px}
+  .itemFx.go{animation:combofx 2s ease forwards}
 
   aside{display:flex;flex-direction:column;gap:13px}
   .plate{
@@ -141,6 +148,9 @@
   .stat-row{display:flex;gap:11px}
   .stat-row .plate{flex:1;text-align:center}
   .stat-row .value{font-size:22px}
+  .bar{height:3px;background:rgba(201,168,74,.15);margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transition:width .35s ease;box-shadow:0 0 6px rgba(230,205,126,.6)}
+  .board-wrap.slow{border-color:var(--jade);box-shadow:inset 0 0 0 1px rgba(95,132,120,.35),inset 0 4px 18px rgba(0,0,0,.7),0 0 26px rgba(95,132,120,.45)}
   .phase-plate{text-align:center}
   .phase-plate .value{font-size:20px;letter-spacing:.08em}
   .phase-plate .value .pk{color:var(--gold-bright);margin-right:8px}
@@ -192,56 +202,68 @@
   .touch{display:none}
   @media (max-width:760px){
     body{align-items:flex-start;padding:8px 8px 0}
-    .frame{grid-template-columns:1fr;gap:8px;padding:12px 12px 10px;width:100%;max-width:440px;margin-bottom:232px}
-    header{margin-bottom:4px;max-width:none}
-    .eyebrow{font-size:8px;margin-bottom:4px}
-    h1{font-size:20px}
-    h1 .kanji{font-size:11px;margin-top:3px}
-    .rule{margin-top:6px}
+    .frame{grid-template-columns:1fr;gap:7px;padding:10px 10px 8px;width:100%;max-width:440px;margin-bottom:96px}
+    header{margin-bottom:2px;max-width:none}
+    .eyebrow{display:none}
+    h1{font-size:18px}
+    h1 .kanji{font-size:10px;margin-top:2px}
+    .rule{margin-top:5px}
+    .rule::before,.rule::after{width:34px}
     .subtitle{display:none}
-    aside{flex-direction:row;flex-wrap:wrap;gap:7px;order:-1}
-    .plate{flex:1;min-width:0;padding:6px 8px}
-    .plate .label{font-size:8px;margin-bottom:3px}
-    .plate .value{font-size:18px}
-    .stat-row{flex:2;gap:7px}
-    .stat-row .value{font-size:16px}
-    .phase-plate{flex-basis:100%;padding:5px 8px}
-    .phase-plate .value{font-size:15px}
-    .duo{flex-basis:auto;min-width:150px;gap:7px}
-    #next,#hold{width:46px;height:46px}
-    .moon-plate{flex-basis:100%;padding:5px 8px 7px}
+    aside{flex-direction:row;flex-wrap:wrap;gap:6px;order:-1}
+    .plate{flex:1;min-width:0;padding:5px 7px}
+    .plate .label{font-size:7.5px;letter-spacing:.2em;margin-bottom:2px}
+    .plate .value{font-size:16px}
+    .stat-row{flex:2;gap:6px}
+    .stat-row .value{font-size:15px}
+    .phase-plate{display:none} /* the aura + verse banner carry the phase on mobile */
+    .duo{flex:1;min-width:104px;gap:6px}
+    .duo .plate{padding:4px 4px 5px}
+    #next,#hold{width:38px;height:38px;margin-top:2px}
+    .moon-plate{flex:1;min-width:96px;padding:4px 7px 6px}
     .moon-plate .hint{display:none}
-    .moongauge .seg{width:12px;height:12px}
-    .toolbar{flex-basis:100%;margin-top:0;gap:7px}
-    .icon-btn{padding:7px 3px}
+    .moongauge{gap:4px;margin-top:5px}
+    .moongauge .seg{width:9px;height:9px}
+    .toolbar{flex-basis:100%;margin-top:0;gap:6px}
+    .icon-btn{padding:6px 3px;font-size:8px}
     .keys,.colophon{display:none}
-    .filigree{width:30px;height:30px}
-    .verse .vk{font-size:38px}
+    .filigree{width:26px;height:26px}
+    .verse .vk{font-size:36px}
+    .verse .vp{font-size:13px}
     .board-wrap{margin:0 auto;padding:6px}
     #board{
       height:auto;
-      width:min(100%, calc((100vh - 430px) / 2));
-      width:min(100%, calc((100dvh - 430px) / 2));
+      width:min(100%, calc((100vh - 350px) / 2));
+      width:min(100%, calc((100dvh - 350px) / 2));
       max-width:300px;
       margin:0 auto;
     }
+
+    /* compact one-row touch pad */
     .touch{
-      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+      display:grid;grid-template-columns:repeat(6,1fr);gap:6px;
       position:fixed;left:0;right:0;bottom:0;z-index:20;
-      padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-      background:linear-gradient(0deg, rgba(8,10,18,.98) 72%, rgba(8,10,18,0));
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+      background:linear-gradient(0deg, rgba(8,10,18,.98) 76%, rgba(8,10,18,0));
       border-top:1px solid rgba(201,168,74,.35);
     }
     .touch button{
-      font-family:'Marcellus',serif;font-size:22px;color:var(--gold-bright);
+      font-family:'Marcellus',serif;font-size:17px;line-height:1;color:var(--gold-bright);
       background:linear-gradient(160deg,rgba(22,26,40,.95),rgba(12,14,22,.98));
-      border:1px solid rgba(201,168,74,.45);border-radius:6px;
-      padding:12px 0;cursor:pointer;user-select:none;touch-action:manipulation;
-      box-shadow:inset 0 0 0 1px rgba(201,168,74,.12),0 4px 10px var(--shadow);
+      border:1px solid rgba(201,168,74,.45);border-radius:5px;
+      padding:8px 0 6px;cursor:pointer;user-select:none;-webkit-user-select:none;
+      -webkit-touch-callout:none;touch-action:manipulation;
+      box-shadow:inset 0 0 0 1px rgba(201,168,74,.12),0 3px 8px var(--shadow);
     }
     .touch button:active{background:rgba(201,168,74,.22);transform:translateY(1px)}
-    .touch button.wide{grid-column:span 2}
-    .touch .lbl{display:block;font-family:'Cinzel',serif;font-size:7.5px;letter-spacing:.16em;color:var(--bone);margin-top:2px}
+    .touch button.gold{color:var(--void);background:linear-gradient(160deg,var(--gold-bright),var(--gold));border-color:var(--gold-bright)}
+    .touch button.gold .lbl{color:rgba(12,14,22,.75)}
+    .touch .lbl{display:block;font-family:'Cinzel',serif;font-size:6.5px;letter-spacing:.12em;color:var(--bone);margin-top:2px}
+  }
+  /* very short screens: shrink further */
+  @media (max-width:760px) and (max-height:640px){
+    h1{font-size:15px}
+    #board{width:min(100%, calc((100dvh - 300px) / 2))}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -272,9 +294,10 @@
           <div class="vp" id="verseP">저녁의 푸른 숨이 탑을 감싼다</div>
         </div>
         <div class="comboFx" id="comboFx">Combo ×2</div>
+        <div class="itemFx" id="itemFx"><span class="ik">砂</span>시간이 느려진다</div>
         <div class="overlay show" id="overlay">
-          <h2 id="ovTitle">A Tower Awaits</h2>
-          <p id="ovText">Each piece is a fragment of a dream.<br>Begin, and let them fall into place.</p>
+          <h2 id="ovTitle">The First Night Awaits</h2>
+          <p id="ovText">Clear ten lines to end each night.<br>Relics of 砂 · 風 · 雷 sleep<br>within the ruins below.</p>
           <button class="primary" id="startBtn">Begin</button>
         </div>
       </div>
@@ -283,8 +306,8 @@
     <aside>
       <div class="plate"><div class="label">Score</div><div class="value" id="score">0</div></div>
       <div class="stat-row">
-        <div class="plate"><div class="label">Lines</div><div class="value" id="lines">0</div></div>
-        <div class="plate"><div class="label">Tier</div><div class="value" id="level">1</div></div>
+        <div class="plate"><div class="label">Goal · 目標</div><div class="value" id="lines">0 / 10</div><div class="bar"><i id="goalBar"></i></div></div>
+        <div class="plate"><div class="label">Night · 夜</div><div class="value" id="level">1</div></div>
       </div>
       <div class="plate phase-plate"><div class="label">Dream Phase</div><div class="value" id="phase"><span class="pk">宵</span>Dusk</div></div>
       <div class="duo">
@@ -311,20 +334,23 @@
         <div><span class="k">Spc</span> Cast down</div>
         <div><span class="k">C</span> Keep a fragment</div>
         <div><span class="k">P</span> Pause</div>
+        <div style="margin-top:6px;border-top:1px solid rgba(201,168,74,.18);padding-top:6px;font-style:italic">
+          폐허 속 부적 — 줄과 함께 지우면 깨어난다<br>
+          砂 느려짐 · 風 한 줄 소거 · 雷 기둥 파괴
+        </div>
       </div>
       <div class="colophon">— 夢 は 落 ち て、塔 と な る —</div>
     </aside>
   </div>
 
-  <!-- mobile -->
+  <!-- mobile: one compact row — hold ←/→/↓ to auto-repeat -->
   <div class="touch" id="touch">
-    <button data-act="left">←<span class="lbl">Left</span></button>
+    <button data-act="left" data-rep="1">←<span class="lbl">Left</span></button>
+    <button data-act="right" data-rep="1">→<span class="lbl">Right</span></button>
     <button data-act="rotate">↻<span class="lbl">Turn</span></button>
-    <button data-act="right">→<span class="lbl">Right</span></button>
-    <button data-act="down">↓<span class="lbl">Soft</span></button>
+    <button data-act="down" data-rep="1">↓<span class="lbl">Soft</span></button>
     <button data-act="hold">✦<span class="lbl">Keep</span></button>
-    <button class="wide" data-act="drop">⤓<span class="lbl">Cast Down</span></button>
-    <button data-act="pause">❙❙<span class="lbl">Pause</span></button>
+    <button class="gold" data-act="drop">⤓<span class="lbl">Drop</span></button>
   </div>
 
 <script>
@@ -339,7 +365,10 @@
   const startBtn=document.getElementById('startBtn'),soundBtn=document.getElementById('soundBtn'),bgmBtn=document.getElementById('bgmBtn'),pauseBtn=document.getElementById('pauseBtn');
   const verse=document.getElementById('verse'),verseK=document.getElementById('verseK'),verseN=document.getElementById('verseN'),verseP=document.getElementById('verseP');
   const comboFx=document.getElementById('comboFx');
+  const itemFx=document.getElementById('itemFx');
   const nextPlate=document.getElementById('nextPlate');
+  const goalBar=document.getElementById('goalBar');
+  const boardWrap=document.querySelector('.board-wrap');
   const moonSegs=document.querySelectorAll('#moongauge .seg');
   const aura=document.getElementById('aura');
   const flash=document.getElementById('flash');
@@ -348,6 +377,14 @@
   const COLORS={I:'#6f9a93',O:'#c9a84a',T:'#7a5e86',S:'#7e9466',Z:'#a36572',J:'#5a6a92',L:'#c08a52',M:'#e6cd7e'};
   const SHAPES={I:[[1,1,1,1]],O:[[1,1],[1,1]],T:[[0,1,0],[1,1,1]],S:[[0,1,1],[1,1,0]],Z:[[1,1,0],[0,1,1]],J:[[1,0,0],[1,1,1]],L:[[0,0,1],[1,1,1]]};
   const TYPES=Object.keys(SHAPES);
+
+  // relics buried in the ruins — cleared with their line, they awaken
+  const ITEM_INFO={
+    iS:{k:'砂',msg:'모래시계 — 시간이 느려진다'},
+    iW:{k:'風',msg:'바람 — 가장 낮은 층을 쓸어간다'},
+    iL:{k:'雷',msg:'번개 — 기둥을 내리친다'}
+  };
+  const ITEM_KEYS=Object.keys(ITEM_INFO);
 
   // ---------- dream phases: every 3 tiers the dream changes ----------
   const PHASES=[
@@ -363,13 +400,14 @@
      a:'rgba(232,227,214,.12)',b:'rgba(201,168,74,.13)', c:'rgba(156,90,106,.07)', root:329.63}
   ];
   const ROMAN=['I','II','III','IV','V'];
-  function phaseIdxOf(lv){return Math.min(PHASES.length-1, Math.floor((lv-1)/3));}
-  function curPhase(){return PHASES[phaseIdxOf(level)];}
+  function curPhase(){return PHASES[(stage-1)%PHASES.length];}
 
+  const TARGET=10; // lines to end each night
   let grid,cur,next,hold=null,holdUsed=false;
-  let score,lines,level,dropMs,dropAcc,last,running,paused,over;
+  let score,lines,level,stage,stageLines,dropMs,dropAcc,last,running,paused,over,intermission;
   let sfxOn=true,bgmOn=true;
   let combo=0,moonMeter=0;
+  let slowUntil=0,slowActive=false;
   let parts=[];
 
   // ---------- sound (WebAudio, harp/glass timbres) ----------
@@ -399,6 +437,10 @@
     tetris:()=>chord([523,659,784,1046,1318],.7,'sine',.14),
     moon:()=>chord([784,988,1318,1568,1976],.8,'sine',.13),
     level:()=>chord([392,523,659,784],.5,'triangle',.12),
+    stage:()=>chord([523,659,784,1046,1318,1568],.9,'triangle',.13),
+    sand:()=>chord([660,554,440],.7,'sine',.10),
+    wind:()=>chord([988,784,659,523],.4,'sine',.09),
+    thunder:()=>{sfx(72,.35,'sawtooth',.14);sfx(110,.3,'triangle',.12);sfx(1568,.15,'sine',.06);},
     over:()=>chord([330,277,220,165],.6,'sine',.13)
   };
 
@@ -436,7 +478,7 @@
   function showVerse(){
     const ph=curPhase();
     verseK.textContent=ph.kanji;
-    verseN.textContent=ph.name+' · Tier '+ROMAN[phaseIdxOf(level)];
+    verseN.textContent='Night '+stage+' · '+ph.name;
     verseP.textContent=ph.poem;
     verse.classList.remove('go');void verse.offsetWidth;verse.classList.add('go');
     flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go');
@@ -445,16 +487,42 @@
     comboFx.textContent='Combo ×'+n;
     comboFx.classList.remove('go');void comboFx.offsetWidth;comboFx.classList.add('go');
   }
+  function showItem(code){
+    const it=ITEM_INFO[code];
+    itemFx.innerHTML='<span class="ik">'+it.k+'</span>'+it.msg;
+    itemFx.classList.remove('go');void itemFx.offsetWidth;itemFx.classList.add('go');
+  }
 
   // ---------- game core ----------
   function reset(){
+    score=0;lines=0;stage=1;combo=0;moonMeter=0;
+    hold=null;holdUsed=false;parts=[];
+    running=true;paused=false;over=false;intermission=false;
+    setupStage();
+    updateMoon();drawHold();
+  }
+  // how many ruined rows greet each night
+  function ruinRowsFor(s){return s===1?0:Math.min(1+Math.floor(s/2),8);}
+  function setupStage(){
     grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
-    score=0;lines=0;level=1;dropMs=800;dropAcc=0;
-    running=true;paused=false;over=false;
-    hold=null;holdUsed=false;combo=0;moonMeter=0;parts=[];
+    const nRuin=ruinRowsFor(stage);
+    for(let i=0;i<nRuin;i++){
+      const y=ROWS-1-i;
+      const row=Array(COLS).fill(null);
+      const fillN=5+((Math.random()*3)|0); // 5–7 stones per row
+      const idxs=[...Array(COLS).keys()].sort(()=>Math.random()-.5).slice(0,fillN);
+      idxs.forEach(x=>row[x]='G');
+      if(Math.random()<.65){ // a relic may sleep in this row
+        const x=idxs[(Math.random()*idxs.length)|0];
+        row[x]=ITEM_KEYS[(Math.random()*ITEM_KEYS.length)|0];
+      }
+      grid[y]=row;
+    }
+    stageLines=0;level=stage;
+    dropMs=Math.max(110,800-(stage-1)*65);dropAcc=0;
+    slowUntil=0;
     next=spawn();newPiece();
-    updateHUD();updateMoon();drawHold();applyAura();
-    startBgm();
+    applyAura();startBgm();updateHUD();
   }
   function spawn(){const t=TYPES[(Math.random()*TYPES.length)|0];const m=SHAPES[t].map(r=>r.slice());return{t,m,x:((COLS-m[0].length)/2)|0,y:0};}
   function moonPiece(){return{t:'M',m:[[1]],x:4,y:0};}
@@ -471,25 +539,34 @@
     if(cur.t==='M'){shatter();return;}
     cur.m.forEach((row,y)=>row.forEach((v,x)=>{if(v){const ny=cur.y+y;if(ny>=0)grid[ny][cur.x+x]=cur.t;}}));
   }
-  // 月片 — the moon shard: destroys a 3×3 field where it lands
+  // 月片 — the moon shard: destroys a 3×3 field where it lands, waking any relics
   function shatter(){
-    let destroyed=0;
+    let destroyed=0;const acts=[];
     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
       const gx=cur.x+dx,gy=cur.y+dy;
-      if(gx>=0&&gx<COLS&&gy>=0&&gy<ROWS&&grid[gy][gx]){grid[gy][gx]=null;destroyed++;}
+      if(gx>=0&&gx<COLS&&gy>=0&&gy<ROWS&&grid[gy][gx]){
+        const v=grid[gy][gx];
+        if(v[0]==='i')acts.push({t:v,x:gx});
+        grid[gy][gx]=null;destroyed++;
+      }
     }
     score+=100*level+destroyed*30*level;
     burst(cur.x*CELL+CELL/2,cur.y*CELL+CELL/2,36,'#e6cd7e');
     S.moon();
+    acts.forEach(activate);
     updateHUD();
   }
 
+  function clearRowAt(y){
+    petalsRow(y);
+    grid.splice(y,1);grid.unshift(Array(COLS).fill(null));
+  }
   function clearLines(){
-    let c=0;
+    let c=0;const acts=[];
     for(let y=ROWS-1;y>=0;y--){
       if(grid[y].every(z=>z)){
-        petalsRow(y);
-        grid.splice(y,1);grid.unshift(Array(COLS).fill(null));
+        for(let x=0;x<COLS;x++){const v=grid[y][x];if(v&&v[0]==='i')acts.push({t:v,x});}
+        clearRowAt(y);
         c++;y++;
       }
     }
@@ -497,7 +574,7 @@
       combo++;
       score+=[0,40,100,300,1200][c]*level;
       if(combo>1){score+=combo*50*level;showCombo(combo);}
-      lines+=c;
+      lines+=c;stageLines+=c;
 
       // moon gauge fills with every line
       if(next.t!=='M'){
@@ -506,17 +583,40 @@
       }else{moonMeter=Math.min(5,moonMeter+c);}
       updateMoon();
 
-      const nl=1+Math.floor(lines/10);
-      if(nl>level){
-        const before=phaseIdxOf(level);
-        level=nl;dropMs=Math.max(110,800-(level-1)*70);
-        S.level();startBgm();
-        if(phaseIdxOf(level)!==before){applyAura();showVerse();}
-      }
       (c>=4?S.tetris:S.line)();
-      updateHUD();
     }else{
       combo=0;
+    }
+    acts.forEach(activate);
+    if(c||acts.length)updateHUD();
+    if(!over&&!intermission&&stageLines>=TARGET)stageClear();
+  }
+
+  // ---------- relic effects ----------
+  function activate(a){
+    showItem(a.t);
+    if(a.t==='iS'){ // hourglass: slow the fall for 12s
+      slowUntil=performance.now()+12000;
+      S.sand();
+    }else if(a.t==='iW'){ // wind: sweeps away the lowest occupied row
+      for(let y=ROWS-1;y>=0;y--){
+        if(grid[y].some(z=>z)){
+          clearRowAt(y);
+          lines++;stageLines++;score+=60*level;
+          break;
+        }
+      }
+      S.wind();
+    }else if(a.t==='iL'){ // lightning: strikes the relic's column
+      let d=0;
+      for(let y=0;y<ROWS;y++){
+        if(grid[y][a.x]){
+          grid[y][a.x]=null;d++;
+          burst(a.x*CELL+CELL/2,y*CELL+CELL/2,3,'#e6cd7e');
+        }
+      }
+      score+=d*25*level;
+      S.thunder();
     }
   }
   function step(){if(!collide(cur.m,cur.x,cur.y+1))cur.y++;else{merge();S.land();clearLines();newPiece();}}
@@ -590,6 +690,31 @@
 
   // ---------- painting ----------
   function paint(c,px,py,type,cell){
+    if(type==='G'){ // ruin stone
+      const g=c.createLinearGradient(px,py,px+cell,py+cell);
+      g.addColorStop(0,'#585140');g.addColorStop(1,'#332e22');
+      c.fillStyle=g;c.fillRect(px,py,cell,cell);
+      c.fillStyle='rgba(255,250,235,.09)';c.fillRect(px+1,py+1,cell-2,2);
+      c.fillStyle='rgba(0,0,0,.45)';c.fillRect(px+1,py+cell-3,cell-2,2);
+      c.strokeStyle='rgba(201,168,74,.22)';c.lineWidth=1;c.strokeRect(px+.5,py+.5,cell-1,cell-1);
+      c.strokeStyle='rgba(0,0,0,.35)';c.beginPath();
+      c.moveTo(px+cell*.28,py+cell*.18);c.lineTo(px+cell*.55,py+cell*.52);c.lineTo(px+cell*.42,py+cell*.84);c.stroke();
+      return;
+    }
+    if(ITEM_INFO[type]){ // sleeping relic — gilded rune in dark stone
+      const g=c.createLinearGradient(px,py,px+cell,py+cell);
+      g.addColorStop(0,'#3d3524');g.addColorStop(1,'#241f14');
+      c.fillStyle=g;c.fillRect(px,py,cell,cell);
+      c.strokeStyle='rgba(230,205,126,.85)';c.lineWidth=1;c.strokeRect(px+1.5,py+1.5,cell-3,cell-3);
+      c.save();
+      c.shadowColor='rgba(230,205,126,.9)';c.shadowBlur=6;
+      c.fillStyle='#e6cd7e';
+      c.font=Math.floor(cell*.62)+'px Marcellus, serif';
+      c.textAlign='center';c.textBaseline='middle';
+      c.fillText(ITEM_INFO[type].k,px+cell/2,py+cell/2+1);
+      c.restore();
+      return;
+    }
     if(type==='M'){
       const cx=px+cell/2,cy=py+cell/2,r=cell/2;
       const g=c.createRadialGradient(cx,cy,1,cx,cy,r);
@@ -633,7 +758,12 @@
   }
   function drawNext(){drawMini(nctx,nextCv,next);nextPlate.classList.toggle('lunar',next&&next.t==='M');}
   function drawHold(){drawMini(hctx,holdCv,hold);}
-  function updateHUD(){scoreEl.textContent=score;linesEl.textContent=lines;levelEl.textContent=level;}
+  function updateHUD(){
+    scoreEl.textContent=score;
+    linesEl.textContent=Math.min(stageLines,TARGET)+' / '+TARGET;
+    levelEl.textContent=stage;
+    goalBar.style.width=Math.min(100,stageLines/TARGET*100)+'%';
+  }
   function updateMoon(){moonSegs.forEach((s,i)=>s.classList.toggle('fill',i<moonMeter));}
 
   function loop(t){
@@ -642,28 +772,62 @@
       if(!last)last=t;
       const dt=Math.min(.05,(t-last)/1000);
       dropAcc+=t-last;last=t;
-      if(dropAcc>dropMs){step();dropAcc=0;}
+      const slowed=performance.now()<slowUntil;
+      if(slowed!==slowActive){slowActive=slowed;boardWrap.classList.toggle('slow',slowed);}
+      if(dropAcc>dropMs*(slowed?1.9:1)){step();dropAcc=0;}
       updateParts(dt);
       draw();
     }else last=t;
     requestAnimationFrame(loop);
   }
 
+  // ---------- night's end ----------
+  function stageClear(){
+    intermission=true;paused=true;
+    const perfect=grid.every(r=>r.every(z=>!z));
+    const bonus=400*stage+(perfect?1000:0);
+    score+=bonus;updateHUD();
+    S.stage();
+    ovTitle.textContent='Night '+stage+' · 밤이 밝았다';
+    ovText.innerHTML='보너스 <b>+'+bonus+'</b>'+(perfect?'<br><b>퍼펙트 클리어! +1000</b>':'')+
+      '<br>다음 밤은 더 깊고, 더 빠르다.';
+    startBtn.textContent='다음 밤으로';
+    overlay.classList.add('show');
+  }
+  function nextStage(){
+    stage++;
+    intermission=false;paused=false;
+    overlay.classList.remove('show');
+    setupStage();
+    showVerse();
+    last=0;
+  }
+
   function gameOver(){
     running=false;over=true;stopBgm();S.over();
     ovTitle.textContent='The Dream Dissolves';
-    ovText.innerHTML='The tower has reached the sky.<br>Your score: <b>'+score+'</b> · Phase of '+curPhase().name+'.<br>Dream once more?';
+    ovText.innerHTML='당신은 Night '+stage+'까지 올랐다.<br>Score: <b>'+score+'</b> · Lines: '+lines+'<br>Dream once more?';
     startBtn.textContent='Dream Again';overlay.classList.add('show');
   }
-  function begin(){ac();if(actx&&actx.state==='suspended')actx.resume();overlay.classList.remove('show');reset();last=0;requestAnimationFrame(loop);}
+  function begin(){
+    ac();if(actx&&actx.state==='suspended')actx.resume();
+    overlay.classList.remove('show');
+    reset();
+    showVerse();
+    last=0;requestAnimationFrame(loop);
+  }
   function togglePause(){
-    if(!running)return;
+    if(!running||intermission)return;
     paused=!paused;
     if(paused){ovTitle.textContent='Stillness';ovText.innerHTML='The fragments hang in the air.<br>Resume when ready.';startBtn.textContent='Resume';overlay.classList.add('show');}
     else overlay.classList.remove('show');
   }
 
-  startBtn.onclick=()=>{ if(running&&paused){togglePause();return;} begin(); };
+  startBtn.onclick=()=>{
+    if(running&&intermission){nextStage();return;}
+    if(running&&paused){togglePause();return;}
+    begin();
+  };
   pauseBtn.addEventListener('click',togglePause);
   soundBtn.addEventListener('click',()=>{
     sfxOn=!sfxOn;soundBtn.classList.toggle('on',sfxOn);
@@ -690,7 +854,7 @@
     }
   });
 
-  // mobile touch
+  // mobile touch — tap once, or press-and-hold ←/→/↓ to auto-repeat
   function handleTouch(act){
     if(act==='pause'){togglePause();return;}
     if(!running||paused)return;
@@ -701,14 +865,29 @@
     else if(act==='drop'){hardDrop();draw();}
     else if(act==='hold'){doHold();draw();}
   }
-  document.getElementById('touch').addEventListener('pointerdown',e=>{
+  const touchEl=document.getElementById('touch');
+  let repDelay=null,repInt=null;
+  function clearRep(){
+    if(repDelay){clearTimeout(repDelay);repDelay=null;}
+    if(repInt){clearInterval(repInt);repInt=null;}
+  }
+  touchEl.addEventListener('pointerdown',e=>{
     const b=e.target.closest('button');if(!b)return;
     e.preventDefault();
-    handleTouch(b.dataset.act);
+    const act=b.dataset.act;
+    handleTouch(act);
+    if(b.dataset.rep){
+      clearRep();
+      repDelay=setTimeout(()=>{
+        repInt=setInterval(()=>handleTouch(act), act==='down'?60:85);
+      },240);
+    }
   });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>touchEl.addEventListener(ev,clearRep));
+  touchEl.addEventListener('contextmenu',e=>e.preventDefault());
 
   grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
-  level=1;applyAura();
+  stage=1;stageLines=0;level=1;applyAura();
   draw();
 })();
 </script>
